@@ -1,0 +1,42 @@
+# Secrets
+.env
+.env.local
+*.key
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.venv/
+venv/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+
+# Data & artifacts
+data/
+checkpoints/
+logs/
+wandb/
+outputs/
+*.safetensors
+*.onnx
+*.pt
+*.ckpt
+
+# HuggingFace cache (if set locally)
+.cache/
+hf_cache/
+
+# Notebook outputs
+.ipynb_checkpoints/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.idea/
+.vscode/
+*.swp

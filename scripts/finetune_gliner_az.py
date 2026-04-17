@@ -153,23 +153,29 @@ class HubEpochCheckpoint(TrainerCallback):
 
 def evaluate_per_entity(model: GLiNER, samples: list[dict], labels: list[str],
                         threshold: float = 0.4) -> dict:
+    was_training = model.training
     model.eval()
     per_type: dict[str, dict[str, int]] = defaultdict(lambda: {"tp": 0, "fp": 0, "fn": 0})
-    for s in samples:
-        tokens = s["tokenized_text"]
-        text = " ".join(tokens)
-        gold = {(" ".join(tokens[a:b + 1]).lower(), lbl) for a, b, lbl in s["ner"]}
-        try:
-            preds = model.predict_entities(text, labels, threshold=threshold)
-        except Exception:
-            continue
-        pred = {(p["text"].lower(), p["label"]) for p in preds}
-        for label in labels:
-            g = {e for e in gold if e[1] == label}
-            p = {e for e in pred if e[1] == label}
-            per_type[label]["tp"] += len(p & g)
-            per_type[label]["fp"] += len(p - g)
-            per_type[label]["fn"] += len(g - p)
+    try:
+        with torch.no_grad():
+            for s in samples:
+                tokens = s["tokenized_text"]
+                text = " ".join(tokens)
+                gold = {(" ".join(tokens[a:b + 1]).lower(), lbl) for a, b, lbl in s["ner"]}
+                try:
+                    preds = model.predict_entities(text, labels, threshold=threshold)
+                except Exception:
+                    continue
+                pred = {(p["text"].lower(), p["label"]) for p in preds}
+                for label in labels:
+                    g = {e for e in gold if e[1] == label}
+                    p = {e for e in pred if e[1] == label}
+                    per_type[label]["tp"] += len(p & g)
+                    per_type[label]["fp"] += len(p - g)
+                    per_type[label]["fn"] += len(g - p)
+    finally:
+        if was_training:
+            model.train()
 
     results: dict[str, dict] = {}
     total = {"tp": 0, "fp": 0, "fn": 0}

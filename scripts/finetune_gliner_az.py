@@ -310,16 +310,26 @@ def main() -> None:
                                             start_epoch=epochs_done,
                                             private=not args.public))
 
-    # 7. Trainer
-    trainer = Trainer(
+    # 7. Trainer — HF Transformers 4.46+ renamed `tokenizer` → `processing_class`.
+    # Try the new name first, fall back to the old one for older GLiNER/Transformers.
+    trainer_kwargs = dict(
         model=model,
         args=training_args,
         train_dataset=train_data,
         eval_dataset=eval_data,
-        tokenizer=model.data_processor.transformer_tokenizer,
         data_collator=data_collator,
         callbacks=callbacks,
     )
+    try:
+        trainer = Trainer(
+            **trainer_kwargs,
+            processing_class=model.data_processor.transformer_tokenizer,
+        )
+    except TypeError:
+        trainer = Trainer(
+            **trainer_kwargs,
+            tokenizer=model.data_processor.transformer_tokenizer,
+        )
 
     # 8. Train
     print(f"[train] starting ({remaining_epochs} epochs remaining of {args.epochs})")

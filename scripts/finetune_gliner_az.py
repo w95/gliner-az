@@ -28,7 +28,7 @@ import torch  # noqa: E402
 from datasets import load_dataset  # noqa: E402
 from dotenv import load_dotenv  # noqa: E402
 from gliner import GLiNER  # noqa: E402
-from gliner.data_processing.collator import DataCollator  # noqa: E402
+from gliner.data_processing.collator import SpanDataCollator  # noqa: E402
 from gliner.training import Trainer, TrainingArguments  # noqa: E402
 from huggingface_hub import HfApi, hf_hub_download  # noqa: E402
 from huggingface_hub.utils import RepositoryNotFoundError  # noqa: E402
@@ -271,8 +271,9 @@ def main() -> None:
     eval_data = splits.get("validation") or splits.get("test") or []
     print(f"[data] train={len(train_data)}  val={len(eval_data)}")
 
-    # 4. Collator
-    data_collator = DataCollator(
+    # 4. Collator — GLiNER ≥0.2.27 renamed `DataCollator` to `SpanDataCollator`
+    # (span-type matching is what the multi-v2.1 backbone uses).
+    data_collator = SpanDataCollator(
         model.config, data_processor=model.data_processor, prepare_labels=True,
     )
 
